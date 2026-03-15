@@ -1,0 +1,25 @@
+###
+GET http://localhost:8080/api/chat/debug?question=vacation policy
+
+### Submit feedback (thumbs up)
+POST http://localhost:8080/api/chat/feedback
+Content-Type: application/json
+
+{
+  "responseId": "replace-with-actual-response-id",
+  "rating": true,
+  "comment": "Very helpful!"
+}
+
+### Submit feedback (thumbs down)
+POST http://localhost:8080/api/chat/feedback
+Content-Type: application/json
+
+{
+  "responseId": "replace-with-actual-response-id",
+  "rating": false,
+  "comment": "Not clear enough"
+}
+
+### Get feedback metrics
+GET http://localhost:8080/api/chat/metrics

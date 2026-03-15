@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: onboarder
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/onboarder}
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  ai:
+    openai:
+      api-key: {SPRING_AI_OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+    vectorstore:
+      pgvector:
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        initialize-schema: true
+
+server:
+  port: 8080
+
+onboarder:
+  vectorstore:
+    force-reinit: false
+  splitter:
+    chunk-size: 500
+    min-chunk-size-chars: 150
+    min-chunk-length-to-embed: 10
+    max-num-chunks: 10000
+    keep-separator: true
+  tools:
+    - name: getPtoBalance
+      description: Retrieve your current PTO balance (vacation, sick, and personal days)
+      executionPrompt: Show me my current PTO balance including vacation, sick, and personal days
+      keywords:
+        - pto
+        - vacation
+        - sick
+        - personal day
+        - time off
+        - absence
