@@ -78,7 +78,15 @@ class ChatService(
 
         val chatResponse = toolClient
             .prompt()
-            .system("You MUST call the ${pending.toolName} function to retrieve the data. Do not answer without calling the function.")
+            .system("""
+                You MUST call the provided function and report ONLY the exact values it returns.
+                Do NOT use any other knowledge or context.
+                Format the response exactly as:
+                - Vacation Days: {value}
+                - Sick Days: {value}
+                - Personal Days: {value}
+                - Total Available: {value}
+            """.trimIndent())
             .user(toolPrompt)
             .call()
             .chatResponse()
