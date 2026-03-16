@@ -29,7 +29,7 @@ AI-powered onboarding assistant using Spring AI with RAG (Retrieval Augmented Ge
    docker-compose up --build
    ```
 
-   Open http://localhost in your browser.
+   Open http://localhost:3000 in your browser.
 
 On first startup, the application will:
 - Create the `vector_store_init_status` table
@@ -47,7 +47,7 @@ On subsequent startups, it will skip the initialization process.
 |------------|--------------------------------------|------|
 | `postgres` | PostgreSQL with PgVector extension   | —    |
 | `backend`  | Spring Boot API                      | 8080 |
-| `frontend` | Vite/TypeScript UI served via nginx  | 80   |
+| `frontend` | Vite/TypeScript UI served via nginx  | 3000 |
 
 ### Components
 
