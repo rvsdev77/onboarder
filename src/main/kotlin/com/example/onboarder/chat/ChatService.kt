@@ -123,11 +123,7 @@ class ChatService(
             val requestId = toolsService.createToolRequest(toolOffer.toolName, question)
             return ChatResponse(
                 response = result,
-                toolRequest = ToolRequest(
-                    toolName = toolOffer.toolName,
-                    description = toolOffer.description,
-                    requestId = requestId
-                ),
+                toolRequest = ToolRequest(toolOffer.toolName, toolOffer.description, requestId),
                 responseId = responseId
             )
         }

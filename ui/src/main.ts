@@ -202,30 +202,43 @@ async function sendMessage() {
   messagesContainer.appendChild(thinkingDiv);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
+  const maxRetries = 3;
+  let attempt = 0;
   try {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: prompt })
-    });
-    
-    thinkingDiv.remove();
-    const data = await response.json();
-    
-    if (data.response) {
-      addMessage({ 
-        role: 'assistant', 
-        content: data.response,
-        responseId: data.responseId 
-      });
-    }
-    
-    if (data.toolRequest) {
-      addMessage({ 
-        role: 'tool-request', 
-        content: '', 
-        toolRequest: data.toolRequest 
-      });
+    while (attempt < maxRetries) {
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: prompt })
+        });
+
+        if (response.status === 503 && attempt < maxRetries - 1) {
+          attempt++;
+          thinkingDiv.textContent = `Thinking... (retry ${attempt}/${maxRetries - 1})`;
+          await new Promise(res => setTimeout(res, 1000 * attempt));
+          continue;
+        }
+
+        thinkingDiv.remove();
+        const data = await response.json();
+
+        if (data.response) {
+          addMessage({ role: 'assistant', content: data.response, responseId: data.responseId });
+        }
+        if (data.toolRequest) {
+          addMessage({ role: 'tool-request', content: '', toolRequest: data.toolRequest });
+        }
+        break;
+      } catch (err) {
+        if (attempt < maxRetries - 1) {
+          attempt++;
+          thinkingDiv.textContent = `Thinking... (retry ${attempt}/${maxRetries - 1})`;
+          await new Promise(res => setTimeout(res, 1000 * attempt));
+        } else {
+          throw err;
+        }
+      }
     }
   } catch (error) {
     thinkingDiv.remove();
