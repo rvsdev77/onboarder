@@ -29,6 +29,8 @@ server:
 onboarder:
   vectorstore:
     force-reinit: false
+  reflection:
+    enabled: true
   splitter:
     chunk-size: 500
     min-chunk-size-chars: 150

@@ -1,5 +1,6 @@
 package com.example.onboarder.configuration
 
+import com.example.onboarder.chat.ReflectionAdvisor
 import com.knuddels.jtokkit.api.EncodingType
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.client.advisor.RetrievalAugmentationAdvisor
@@ -12,6 +13,7 @@ import org.springframework.ai.rag.preretrieval.query.transformation.QueryTransfo
 import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever
 import org.springframework.ai.vectorstore.VectorStore
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -41,23 +43,24 @@ private val CONTEXT_PROMPT_TEMPLATE = PromptTemplate(
 
 /**
  * Spring configuration for RAG (Retrieval Augmented Generation) components.
- * 
+ *
  * Configures the complete RAG pipeline including:
  * - Embedding batching strategy for efficient processing
  * - Query transformation for improved retrieval
  * - Document retrieval with similarity search
  * - Context augmentation for prompt engineering
+ * - Self-reflection advisor for response quality improvement
  */
 @Configuration
 class OnboarderConfig {
 
     /**
      * Configures batching strategy for embedding operations.
-     * 
+     *
      * Uses token counting to batch documents efficiently while staying within
      * model token limits (8192 tokens with 15% reserve).
-     * 
-     * @return Configured batching strategy
+     *
+     * @return Configured batching strategy.
      */
     @Bean
     fun batchingStrategy(): BatchingStrategy = TokenCountBatchingStrategy(
@@ -68,34 +71,33 @@ class OnboarderConfig {
 
     /**
      * Configures query transformer for improving retrieval quality.
-     * 
+     *
      * Uses AI to rewrite user queries into more effective search queries,
      * improving the relevance of retrieved documents.
-     * 
-     * @param chatClientBuilder Builder for creating chat client
-     * @return Configured query transformer
+     *
+     * @param chatClientBuilder Builder for creating the chat client.
+     * @return Configured query transformer.
      */
     @Bean
-    fun queryTransformer(chatClientBuilder: ChatClient.Builder): QueryTransformer {
-        return RewriteQueryTransformer.builder()
+    fun queryTransformer(chatClientBuilder: ChatClient.Builder): QueryTransformer =
+        RewriteQueryTransformer.builder()
             .chatClientBuilder(chatClientBuilder)
             .build()
-    }
 
     /**
      * Configures the RAG advisor for chat interactions.
-     * 
+     *
      * Combines query transformation, document retrieval, and context augmentation
      * to provide relevant company policy context to the AI.
-     * 
+     *
      * Configuration:
      * - Similarity threshold: 0.15 (lower = more permissive)
      * - Top K: 5 documents retrieved per query
      * - Allows empty context for general knowledge questions
-     * 
-     * @param queryTransformer Transformer for improving queries
-     * @param vectorStore Vector store containing document embeddings
-     * @return Configured RAG advisor
+     *
+     * @param queryTransformer Transformer for improving queries.
+     * @param vectorStore Vector store containing document embeddings.
+     * @return Configured RAG advisor.
      */
     @Bean
     fun ragAdvisor(
@@ -121,4 +123,19 @@ class OnboarderConfig {
             .build()
     }
 
+    /**
+     * Configures the self-reflection advisor.
+     *
+     * Wraps each AI response with a critic + optional rewrite loop.
+     * Enabled or disabled via the `onboarder.reflection.enabled` property.
+     *
+     * @param chatClientBuilder Builder used to create the critic chat client.
+     * @param enabled Whether reflection is active (default: true).
+     * @return Configured [ReflectionAdvisor].
+     */
+    @Bean
+    fun reflectionAdvisor(
+        chatClientBuilder: ChatClient.Builder,
+        @Value("\${onboarder.reflection.enabled:true}") enabled: Boolean
+    ): ReflectionAdvisor = ReflectionAdvisor(chatClientBuilder.build(), enabled)
 }

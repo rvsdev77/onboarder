@@ -8,6 +8,7 @@ AI-powered onboarding assistant using Spring AI with RAG (Retrieval Augmented Ge
 - **Smart Duplicate Prevention**: Skips re-initialization on subsequent startups using database flag
 - **RAG-based Chat**: Answers onboarding questions using company policy documents
 - **PgVector Integration**: PostgreSQL with vector extension for semantic search
+- **Self-Reflection**: AI critiques its own responses and rewrites them if issues are detected
 - **Feedback System**: Collect user feedback (thumbs up/down) to measure chat accuracy and relevance
 - **Success Metrics**: Track response quality with aggregated statistics and success rates
 - **Interactive UI**: Web-based chat interface with real-time feedback buttons
@@ -57,6 +58,7 @@ On subsequent startups, it will skip the initialization process.
 - **ContentSplitter**: Chunks documents into smaller pieces
 - **KeywordEnricher**: Enriches chunks with AI-generated keywords
 - **VectorStore**: Stores document embeddings (PgVector)
+- **ReflectionAdvisor**: Critiques AI responses and rewrites them if issues are detected
 
 ### Ingestion Pipeline
 
@@ -90,6 +92,16 @@ Configure in `src/main/resources/application.yml`:
 onboarder:
   vectorstore:
     force-reinit: false  # Set to true to force re-initialization
+```
+
+### Self-Reflection
+
+The reflection loop runs a critic LLM call after every response. If the critic identifies issues, a rewrite call is triggered. Toggle via:
+
+```yaml
+onboarder:
+  reflection:
+    enabled: true  # Set to false to disable (reduces latency by up to 2 LLM calls)
 ```
 
 ### Force Re-initialization
